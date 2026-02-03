@@ -12,9 +12,7 @@ class crmAPI:
         self.saveandEdit = page.get_by_role("button", name="บันทึกและกลับมาแก้ไข")
         self.runImport = page.get_by_role("link", name="Run import")
 
-    def goto_importer(self):
-        self.imports.click()
-        self.addImport.click()
-
     def select_import_type(self, import_type: str):
         self.importList.select_option(label=import_type)
+        self.saveandEdit.click()
+        self.runImport.click()
