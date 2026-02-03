@@ -66,38 +66,40 @@ playwright install
 
 ## ▶️ วิธีรัน Test
 
-ENV=DEV
-ENV=UAT
-ENV=PRD
+$env:ENV="DEV";
+$env:ENV="UAT"; 
+$env:ENV="PRD"; 
+
+
 
 รันทั้งหมด
 
 ```bash
-ENV=DEV pytest
+$env:ENV="DEV"; pytest
 ```
 
 รันเฉพาะไฟล์
 
 ```bash
-ENV=DEV pytest src/tests/test_example.py
+$env:ENV="DEV"; pytest src/tests/test_example.py
 ```
 
 รันเฉพาะ case
 
 ```bash
-ENV=DEV pytest -k member_white_5000 -v
+$env:ENV="DEV"; pytest -k member_white_5000 -v
 ```
 
 DEBUG Mode
 
 ```bash
-PWDEBUG=1 ENV=DEV pytest -k member_white_5000 -v
+$env:PWDEBUG="1"; pytest pytest -k member_white_5000 -v
 ```
 
 Headed Mode
 
 ```bash
-ENV=DEV pytest --headed -k member_white_5000 -v
+$env:ENV="DEV"; pytest --headed -k member_white_5000 -v
 ```
 
 
