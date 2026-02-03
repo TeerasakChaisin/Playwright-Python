@@ -176,3 +176,14 @@ which python
 * ใช้ Page Object ทุกหน้า
 
 ---
+
+UPDATE PROJECT
+
+1) cd Playwright-Python
+2) git pull
+3) ถ้ามีการแก้ requirements.txt
+   → pip install -r requirements.txt
+4) ถ้ามีการแก้ playwright version
+   → playwright install
+
+--
