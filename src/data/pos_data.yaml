@@ -1,0 +1,239 @@
+customers:
+  regular_2500:
+    id: TH20260541070M
+
+  white_5000:
+    id: TH20260541071M
+
+  white_7500:
+    id: TH20260541072M
+
+  white_10000:
+    id: TH20260541073M
+
+  gray_15000:
+    id: TH20260541074M
+
+  gray_17500:
+    id: TH20260541075M
+
+  black_30000:
+    id: TH20260541076M
+
+  black_35000:
+    id: TH20260541077M
+
+  black_60000:
+    id: TH20260541078M
+
+  black_5000+10000+15000:
+    id: TH20260541079M
+
+  void_regular_2500:
+    id: TH20260540983M
+
+  void_white_5000:
+    id: TH20260540984M
+
+  void_white_2500+2500_1:
+    id: TH20260540985M
+
+  void_white_2500+2500_2:
+    id: TH20260540986M
+
+  void_gray_15000:
+    id: TH20260540987M
+
+  void_gray_10000+5000_1:
+    id: TH20260540988M
+
+  void_gray_10000+5000_2:
+    id: TH20260540989M
+
+  void_black_30000:
+    id: TH20260540990M
+
+  void_black_5000+10000+15000_1:
+    id: TH20260540991M
+
+  void_black_5000+10000+15000_2:
+    id: TH20260540992M
+
+  void_black_5000+10000+15000_3:
+    id: TH20260540993M
+
+products:
+  main:
+    name: (100001) TMES SAMPLE#100001
+
+tiers:
+  - name: member_regular_2500
+    customer: regular_2500
+    product: main
+    rounds:
+      - times: 1
+
+  - name: member_white_5000
+    customer: white_5000
+    product: main
+    rounds:
+      - times: 2
+
+  - name: member_white_7500
+    customer: white_7500
+    product: main
+    rounds:
+      - times: 3
+
+  - name: member_white_10000
+    customer: white_10000
+    product: main
+    rounds:
+      - times: 4
+
+  - name: member_gray_15000
+    customer: gray_15000
+    product: main
+    rounds:
+      - times: 6
+
+  - name: member_gray_17500
+    customer: gray_17500
+    product: main
+    rounds:
+      - times: 7
+
+  - name: member_black_30000
+    customer: black_30000
+    product: main
+    rounds:
+      - times: 12
+
+  - name: member_black_35000
+    customer: black_35000
+    product: main
+    rounds:
+      - times: 14
+
+  - name: member_black_60000
+    customer: black_60000
+    product: main
+    rounds:
+      - times: 24
+
+  - name: member_black_5000+10000+15000
+    customer: black_5000+10000+15000
+    product: main
+    rounds:
+      - times: 2
+      - times: 4
+      - times: 6
+
+  - name: void_regular_2500
+    customer: void_regular_2500
+    product: main
+    rounds:
+      - times: 1
+    void:
+      row: 0
+      reason: Void from playwright test
+
+  - name: void_white_5000
+    customer: void_white_5000
+    product: main
+    rounds:
+      - times: 1
+    void:
+      row: 0
+      reason: Void from playwright test
+
+  - name: void_white_2500+2500_1
+    customer: void_white_2500+2500_1
+    product: main
+    rounds:
+      - times: 1
+      - times: 1
+    void:
+      row: 1
+      reason: Void from playwright test
+
+  - name: void_white_2500+2500_2
+    customer: void_white_2500+2500_2
+    product: main
+    rounds:
+      - times: 1
+      - times: 1
+    void:
+      row: 0
+      reason: Void 2nd transaction from playwright test
+
+  - name: void_gray_15000
+    customer: void_gray_15000
+    product: main
+    rounds:
+      - times: 6
+    void:
+      row: 0
+      reason: Void from playwright test
+
+  - name: void_gray_10000+5000_1
+    customer: void_gray_10000+5000_1
+    product: main
+    rounds:
+      - times: 4
+      - times: 2
+    void:
+      row: 1
+      reason: Void from playwright test
+
+  - name: void_gray_10000+5000_2
+    customer: void_gray_10000+5000_2
+    product: main
+    rounds:
+      - times: 4
+      - times: 2
+    void:
+      row: 0
+      reason: Void 2nd transaction from playwright test
+
+  - name: void_black_30000
+    customer: void_black_30000
+    product: main
+    rounds:
+      - times: 12
+    void:
+      row: 0
+      reason: Void from playwright test
+
+  - name: void_black_5000+10000+15000_1
+    customer: void_black_5000+10000+15000_1
+    product: main
+    rounds:
+      - times: 2
+      - times: 4
+      - times: 6
+    void:
+      row: 2
+      reason: Void from playwright test
+
+  - name: void_black_5000+10000+15000_2
+    customer: void_black_5000+10000+15000_2
+    product: main
+    rounds:
+      - times: 2
+      - times: 4
+      - times: 6
+    void:
+      row: 1
+      reason: Void 2nd transaction from playwright test
+
+  - name: void_black_5000+10000+15000_3
+    customer: void_black_5000+10000+15000_3
+    product: main
+    rounds:
+      - times: 2
+      - times: 4
+      - times: 6
+    void:
+      row: 0
+      reason: Void 3rd transaction from playwright test
