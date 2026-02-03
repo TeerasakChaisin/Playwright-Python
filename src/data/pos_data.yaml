@@ -237,3 +237,14 @@ tiers:
     void:
       row: 0
       reason: Void 3rd transaction from playwright test
+
+
+#  - name: memeber_regular_2500
+#    customer: regular_2500
+#    product: main
+#    rounds:
+#      - times: 1
+#    expected:
+#      total_spending_current_period: 2500
+#      spending_to_next_tier: 2500
+#      spending_to_keep_tier: 0
