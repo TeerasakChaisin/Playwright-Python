@@ -1,20 +1,21 @@
 from pathlib import Path
 import yaml
 
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = BASE_DIR / "src" / "data"
+IMPORT_DIR = DATA_DIR / "import"
+ORDER_FILE = DATA_DIR / "importlist_data.yaml"
 
-def load_import_files():
-    base_dir = Path(__file__).resolve().parents[1]
-    yaml_path = base_dir / "data" / "importlist_data.yaml"
 
-    with open(yaml_path, encoding="utf-8") as f:
+def load_import_sequence():
+    with open(ORDER_FILE, encoding="utf-8") as f:
         data = yaml.safe_load(f)
-
-    import_dir = base_dir / "data" / "import"
 
     result = []
 
-    for import_type in data["import_types"]:
-        file_path = import_dir / f"{import_type}.xlsx"
+    for import_type in data.get("import_types", []):
+        file_path = IMPORT_DIR / f"{import_type}.xlsx"
+
         if file_path.exists():
             result.append((import_type, str(file_path)))
 

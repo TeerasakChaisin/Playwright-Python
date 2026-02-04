@@ -25,3 +25,8 @@ def login(page: Page):
     login_page = LoginPage(page)
     login_page.login_pos(Credentials.POS_USER, Credentials.POS_PASSWORD)
     login_page.expect_login_successful()
+
+@pytest.fixture(scope="module")
+def bms_import_page(bms_page):
+    bms_page.imports.click()
+    return bms_page

@@ -7,7 +7,7 @@ load_env()
 
 class customer_wallet_detail:
     def __init__(self):
-        self.base_url = os.getenv("API_CRM")
+        self.base_url = os.getenv("API_CRM_URL")
         if not self.base_url:
             raise ValueError("Missing API_CRM")
 

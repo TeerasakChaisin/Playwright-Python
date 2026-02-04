@@ -1,4 +1,6 @@
 import_types:
+  - Batch Tier Update
+  - Batch Import Wallet Transactions
   - Panpuri Fast Importer
 
 #import file name
