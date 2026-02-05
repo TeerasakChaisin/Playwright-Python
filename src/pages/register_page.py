@@ -84,16 +84,24 @@ class RegisterPage:
 
         for _ in range(times):
             self.open_register()
+            self.page.wait_for_load_state("domcontentloaded")
 
+            expect(self.last_name_input).to_be_visible()
             self.last_name_input.fill(working_data["last_name"])
+
+            expect(self.dob_input).to_be_visible()
             self.dob_input.fill(working_data["dob"])
 
+            expect(self.phone_country_input).to_be_visible()
             self.phone_country_input.fill(working_data["phone_country"])
             self.phone_country_input.press("Enter")
 
+            expect(self.gender_input).to_be_enabled()
             self.gender_input.click()
+            expect(self.page.get_by_text(working_data["gender"], exact=True)).to_be_visible()
             self.page.get_by_text(working_data["gender"], exact=True).click()
 
+            expect(self.nationality_input).to_be_visible()
             self.nationality_input.fill(working_data["nationality"])
             self.nationality_input.press("Enter")
 
@@ -101,14 +109,22 @@ class RegisterPage:
             self._fill_form(working_data)
 
             expect(self.submit_button).to_be_enabled()
-            self.submit_button.click()
 
-            if self.alert_success.is_visible(timeout=5000):
+            with self.page.expect_response(lambda r: r.status in (200, 201)):
+                self.submit_button.click()
+
+            try:
+                expect(self.alert_success).to_be_visible(timeout=5000)
                 self._save_success_name(working_data["first_name"])
                 continue
+            except:
+                pass
 
-            if self.alert_duplicate.is_visible(timeout=5000):
+            try:
+                expect(self.alert_duplicate).to_be_visible(timeout=3000)
                 self.alert_ok.click()
                 continue
+            except:
+                pass
 
             break
