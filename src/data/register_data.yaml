@@ -6,6 +6,6 @@ new_user:
   phone_number: ""
   gender: Man
   nationality: Thai
-  email: "Hello"
+  email: 
   agree_marketing: true
   times: 1

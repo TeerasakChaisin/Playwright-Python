@@ -51,13 +51,13 @@ class RegisterPage:
     def _generate_new_data(self, data: dict):
         seed = self._gen_seed()
 
-        firstName = self._base_data.get("first_name", "Auto-")
-        eMail = self._base_data.get("email", f"{firstName}")
+        firstName = self._base_data.get("first_name") or "Auto-"
+        eMail = self._base_data.get("email") or f"{firstName}"
 
         data["first_name"] = f"{firstName}{seed}"
         data["phone_number"] = seed
         data["email"] = f"{eMail}{seed}@gmail.com"
-
+        
     def _fill_form(self, data: dict):
         self.first_name_input.fill(data["first_name"])
         self.phone_number_input.fill(data["phone_number"])
