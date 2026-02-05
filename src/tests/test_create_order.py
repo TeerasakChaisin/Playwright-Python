@@ -43,14 +43,13 @@ tiers = get_tiers()
     ids=[t["name"] for t in tiers],
 )
 def test_tier_spending_flow(
-    page: Page,
-    login,
+    pos_page: Page,
     tier: dict,
     customers: dict,
     products: dict,
     crm_client,
 ):
-    pos = POSPage(page)
+    pos = POSPage(pos_page)
 
     customer_id = customers[tier["customer"]]["id"]
     product_name = products[tier["product"]]["name"]

@@ -12,34 +12,26 @@ class RegisterPage:
         self.last_name_input = page.locator("#lastName")
         self.dob_input = page.locator("#birthDate")
 
-        self.phone_country_input = page.locator(
-            "input#phone[role='combobox'][type='search']"
-        )
-        self.phone_number_input = page.locator(
-            "input#phone[placeholder='Your phone number']"
-        )
+        self.phone_country_input = page.locator("input#phone[role='combobox'][type='search']")
+        self.phone_number_input = page.locator("input#phone[placeholder='Your phone number']")
         self.gender_input = page.locator("input#gender[role='combobox'][type='search']")
-        self.nationality_input = page.locator(
-            "input#nationality[role='combobox'][type='search']"
-        )
+        self.nationality_input = page.locator("input#nationality[role='combobox'][type='search']")
         self.email_input = page.locator("#email")
 
-        self.marketing_checkbox = page.get_by_role(
-            "checkbox", name="I agree to receive marketing"
-        )
+        self.marketing_checkbox = page.get_by_role("checkbox", name="I agree to receive marketing")
         self.consent = page.get_by_role("checkbox", name="I agree to the Terms and")
 
         self.submit_button = page.get_by_role("button", name="Submit arrow-right")
 
-        self.alert_message = page.get_by_text(
-            "Phone or Email duplicate , please input data again.OK"
-        )
-        self.alert_message_button = page.get_by_role("button", name="OK")
-        self.alert_message_create_success = page.locator(".flex.flex-col.items-center")
+        self.alert_duplicate = page.get_by_text("Phone or Email duplicate , please input data again.OK")
+        self.alert_ok = page.get_by_role("button", name="OK")
+        self.alert_success = page.locator(".flex.flex-col.items-center")
 
         self._base_data = None
-        self._result_file = os.path.join(os.getcwd(), "created_users.txt")
-        os.makedirs(os.path.dirname(self._result_file), exist_ok=True)
+        self._result_file = os.path.abspath("created_users.txt")
+
+    def _gen_seed(self) -> str:
+        return f"{time.time_ns() % 100_000_000:08d}"
 
     def open_register(self):
         self.page.goto(Urls.REGISTER)
@@ -49,29 +41,28 @@ class RegisterPage:
         if not self.marketing_checkbox.is_checked():
             self.marketing_checkbox.check()
 
-        if self.consent.count() > 0:
-            if not self.consent.is_checked():
-                self.consent.check()
+        if self.consent.count() > 0 and not self.consent.is_checked():
+            self.consent.check()
 
     def _init_base_data(self, data: dict):
         if self._base_data is None:
             self._base_data = data.copy()
 
     def _generate_new_data(self, data: dict):
-        ts = int(time.time())
-        data["first_name"] = f"Auto-{ts}"
-        data["phone_number"] = f'{self._base_data["phone_number"][:3]}{str(ts)[-6:]}'
-        data["email"] = f"test{ts}@gmail.com"
+        seed = self._gen_seed()
 
-    def _clear_form(self):
-        self.first_name_input.fill("")
-        self.phone_number_input.fill("")
-        self.email_input.fill("")
+        firstName = self._base_data.get("first_name", "Auto-")
+        eMail = self._base_data.get("email", f"{firstName}")
+
+        data["first_name"] = f"{firstName}{seed}"
+        data["phone_number"] = seed
+        data["email"] = f"{eMail}{seed}@gmail.com"
 
     def _fill_form(self, data: dict):
         self.first_name_input.fill(data["first_name"])
         self.phone_number_input.fill(data["phone_number"])
         self.email_input.fill(data["email"])
+
         if data.get("agree_marketing"):
             self.agree_marketing()
 
@@ -109,22 +100,15 @@ class RegisterPage:
             self._generate_new_data(working_data)
             self._fill_form(working_data)
 
-            try:
-                self.submit_button.click(force=True)
-            except:
-                pass
+            expect(self.submit_button).to_be_enabled()
+            self.submit_button.click()
 
-            try:
-                expect(self.alert_message_create_success).to_be_visible(timeout=5000)
+            if self.alert_success.is_visible(timeout=5000):
                 self._save_success_name(working_data["first_name"])
                 continue
-            except:
-                pass
 
-            try:
-                expect(self.alert_message).to_be_visible(timeout=5000)
-                self.alert_message_button.click(force=True)
-                self._clear_form()
+            if self.alert_duplicate.is_visible(timeout=5000):
+                self.alert_ok.click()
                 continue
-            except:
-                break
+
+            break

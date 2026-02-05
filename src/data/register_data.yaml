@@ -1,11 +1,11 @@
 new_user:
-  first_name: Auto-
+  first_name: Teerasak
   last_name: Chaisin
   dob: "12-Jan-2026"
   phone_country: "+66"
   phone_number: ""
   gender: Man
   nationality: Thai
-  email: ""
+  email: "Hello"
   agree_marketing: true
   times: 1

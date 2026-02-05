@@ -1,5 +1,6 @@
-import os
 import pytest
+from playwright.sync_api import Page
+
 from pages.login_page import LoginPage
 from pages.crmapiLogin_page import crmapiPage
 from pages.crmApi_page import crmAPI
@@ -9,31 +10,35 @@ from pages.bms_page import BMSPage
 from utils.data_loader_pos import POS_USERNAME, POS_PASSWORD
 
 
-@pytest.fixture
-def login(page):
+def _ensure_credentials():
     if not POS_USERNAME or not POS_PASSWORD:
         pytest.fail("Credentials missing")
+
+
+@pytest.fixture
+def pos_page(page: Page) -> Page:
+    _ensure_credentials()
 
     login_page = LoginPage(page)
     login_page.login_pos(POS_USERNAME, POS_PASSWORD)
     login_page.expect_login_successful()
 
+    return page
+
 
 @pytest.fixture
-def crm_api(page):
-    if not POS_USERNAME or not POS_PASSWORD:
-        pytest.fail("Credentials missing")
+def crm_api(page: Page) -> crmAPI:
+    _ensure_credentials()
 
-    login_page = crmapiPage(page)
-    login_page.login(POS_USERNAME, POS_PASSWORD)
+    crm_login = crmapiPage(page)
+    crm_login.login(POS_USERNAME, POS_PASSWORD)
 
     return crmAPI(page)
 
 
 @pytest.fixture
-def bms_page(page):
-    if not POS_USERNAME or not POS_PASSWORD:
-        pytest.fail("Credentials missing")
+def bms_page(page: Page) -> BMSPage:
+    _ensure_credentials()
 
     login_page = BMSLoginPage(page)
     login_page.login(POS_USERNAME, POS_PASSWORD)

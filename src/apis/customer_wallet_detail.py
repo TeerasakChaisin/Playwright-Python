@@ -9,7 +9,7 @@ class customer_wallet_detail:
     def __init__(self):
         self.base_url = os.getenv("API_CRM_URL")
         if not self.base_url:
-            raise ValueError("Missing API_CRM")
+            raise ValueError("Missing API_CRM_URL")
 
     def get_member(self, member_id: str, wallet_code: str):
         url = f"{self.base_url}/s2s/v1/member/{member_id}/"
