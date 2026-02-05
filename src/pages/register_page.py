@@ -66,9 +66,9 @@ class RegisterPage:
         if data.get("agree_marketing"):
             self.agree_marketing()
 
-    def _save_success_name(self, first_name: str):
+    def _save_success_member_id(self, member_id: str):
         with open(self._result_file, "a", encoding="utf-8") as f:
-            f.write(first_name + "\n")
+            f.write(member_id + "\n")
 
     def _clear_success_file(self):
         with open(self._result_file, "w", encoding="utf-8") as f:
@@ -110,12 +110,15 @@ class RegisterPage:
 
             expect(self.submit_button).to_be_enabled()
 
-            with self.page.expect_response(lambda r: r.status in (200, 201)):
+            with self.page.expect_response(lambda r: r.status in (200, 201)) as resp:
                 self.submit_button.click()
+
+            response = resp.value.json()
+            member_id = response["member_id"]
 
             try:
                 expect(self.alert_success).to_be_visible(timeout=5000)
-                self._save_success_name(working_data["first_name"])
+                self._save_success_member_id(member_id)
                 continue
             except:
                 pass
