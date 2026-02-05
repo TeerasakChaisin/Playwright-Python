@@ -1,10 +1,12 @@
 certifi==2026.1.4
 charset-normalizer==3.4.4
+et_xmlfile==2.0.0
 greenlet==3.3.0
 idna==3.11
 iniconfig==2.3.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
+openpyxl==3.1.5
 packaging==25.0
 playwright==1.57.0
 pluggy==1.6.0
