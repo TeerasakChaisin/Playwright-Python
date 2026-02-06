@@ -181,11 +181,27 @@ which python
 
 UPDATE PROJECT
 
-1) cd Playwright-Python
-2) git pull
-3) ถ้ามีการแก้ requirements.txt
-   → pip install -r requirements.txt
-4) ถ้ามีการแก้ playwright version
-   → playwright install
+1) สำรองโค้ดที่แก้ไว้ (เผื่อ rollback)
+git stash
+
+2.1) ดึงโค้ดล่าสุด
+git pull origin main
+
+2) ดึงโค้ดล่าสุดจาก GitHub แบบทับทั้งหมด
+git fetch origin
+git reset --hard origin/main
+
+หมายเหตุ:
+คำสั่งนี้จะทำให้โค้ดในเครื่องเหมือน GitHub 100%
+ไฟล์ที่เคยแก้จะถูกลบทิ้งทั้งหมด
+
+3) ลบ stash (ถ้าไม่ต้องการ rollback แล้ว)
+git stash drop
+
+4) ติดตั้ง dependencies ใหม่ (ถ้า requirements.txt เปลี่ยน)
+pip install -r requirements.txt
+
+5) ติดตั้ง/อัปเดต Playwright browser (ถ้า playwright version เปลี่ยน)
+playwright install
 
 --
