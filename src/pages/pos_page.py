@@ -131,6 +131,7 @@ class POSPage:
         self.close_popup.click()
 
         expect(self.page.locator(".modal-dialog")).not_to_be_visible(timeout=10000)
+        self.expect_cart_quantity
 
     def wait_promotion_modal_ready(self):
         expect(self.confirm_button).to_be_visible(timeout=5000)
@@ -151,11 +152,10 @@ class POSPage:
                 cb.uncheck(force=True)
 
         self.confirm_button.click()
-
-    def open_receipt(self):
-        expect(self.receipt).to_be_visible(timeout=5000)
-        self.receipt.click()
-        expect(self.receipt_table_rows.first).to_be_visible(timeout=10000)
+    
+    def expect_cart_quantity(self, expected_qty: int):
+        qty = self.page.locator('input[type="number"]').first
+        expect(qty).to_have_value(str(expected_qty), timeout=10000)
 
     def void_transaction(self, row_index: int, reason: str):
         row = self.receipt_table_rows.nth(row_index)
