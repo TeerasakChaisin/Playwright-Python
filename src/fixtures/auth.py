@@ -17,29 +17,17 @@ def _ensure_credentials():
 
 @pytest.fixture
 def pos_page(page: Page) -> Page:
-    _ensure_credentials()
-
-    login_page = LoginPage(page)
-    login_page.login_pos(POS_USERNAME, POS_PASSWORD)
-    login_page.expect_login_successful()
-
+    LoginPage(page).login()
     return page
-
 
 @pytest.fixture
 def crm_api(page: Page) -> crmAPI:
-    _ensure_credentials()
-
     crm_login = crmapiPage(page)
-    crm_login.login(POS_USERNAME, POS_PASSWORD)
-
+    crm_login.login()
     return crmAPI(page)
-
 
 @pytest.fixture
 def bms_page(page: Page) -> BMSPage:
-    _ensure_credentials()
-
     login_page = BMSLoginPage(page)
     login_page.login(POS_USERNAME, POS_PASSWORD)
 

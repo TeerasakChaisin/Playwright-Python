@@ -1,5 +1,6 @@
 from playwright.sync_api import Page, expect
 from utils.config import Urls
+from utils.env import load_env
 
 
 class LoginPage:
@@ -13,11 +14,10 @@ class LoginPage:
     def goto_pos(self):
         self.page.goto(Urls.POS, wait_until="networkidle")
 
-    def login_pos(self, username: str, password: str):
+    def login(self):
+        env = load_env()
         self.goto_pos()
-        self.username_input.fill(username)
-        self.password_input.fill(password)
+        self.username_input.fill(env["POS_USERNAME"])
+        self.password_input.fill(env["POS_PASSWORD"])
         self.login_button.click()
-
-    def expect_login_successful(self):
         expect(self.payment_button).to_be_visible(timeout=10_000)

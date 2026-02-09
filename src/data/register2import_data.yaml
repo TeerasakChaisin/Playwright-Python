@@ -1,0 +1,28 @@
+new_user:
+  first_name: Teerasak
+  last_name: Chaisin
+  dob: "12-Jan-2026"
+  phone_country: "+66"
+  phone_number: ""
+  gender: Man
+  nationality: Thai
+  email: 
+  agree_marketing: true
+  times: 3
+
+import_types:
+  Batch Tier Update:
+    default:
+      tier_code: JPJPY-RED
+    rules:
+      - tier_code: JPJPY-BLUE
+        amount: 1
+      - tier_code: JPJPY-GOLD
+        amount: 1
+
+  Batch Import Wallet Transactions:
+    - member_id:
+    - point: 500
+    - description: test
+    - expired_at:
+    - tags: wallet:JPJPY,non-tier

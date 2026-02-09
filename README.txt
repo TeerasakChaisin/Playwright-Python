@@ -184,10 +184,11 @@ UPDATE PROJECT
 1) สำรองโค้ดที่แก้ไว้ (เผื่อ rollback)
 git stash
 
+2) Update project
 2.1) ดึงโค้ดล่าสุด
 git pull origin main
 
-2) ดึงโค้ดล่าสุดจาก GitHub แบบทับทั้งหมด
+2.2) ดึงโค้ดล่าสุดจาก GitHub แบบทับทั้งหมด
 git fetch origin
 git reset --hard origin/main
 

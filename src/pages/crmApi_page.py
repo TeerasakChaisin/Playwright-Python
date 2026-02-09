@@ -29,3 +29,10 @@ class crmAPI:
         self.runImport.click()
         self.page.wait_for_load_state("networkidle")
         self.open_import_page()
+
+    def import_file(self, import_type: str, file_path: str):
+        self.open_import_page()
+        self.select_import_type(import_type)
+        self.importFile.set_input_files(file_path)
+        self.save()
+        self.run()

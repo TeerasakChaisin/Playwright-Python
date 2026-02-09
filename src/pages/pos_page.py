@@ -61,9 +61,9 @@ class POSPage:
         if (
             "TMES BR : 02" not in selected
             and "Test" not in selected
-            and "TMES HQ (Branch)" not in selected
+#            and "TMES HQ (Branch)" not in selected
         ):
-            self.page.get_by_role("option", name="Test").click()
+            self.page.get_by_role("option", name="TMES BR : 02").click()
 
     def should_skip_before_pos(tier):
         expected = tier.get("expected")

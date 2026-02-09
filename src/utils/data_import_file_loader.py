@@ -1,22 +1,38 @@
 from pathlib import Path
-import yaml
+from utils.yaml_loader import load_yaml
+from utils.excel_builder import build_tier_update_excel, build_wallet_excel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "src" / "data"
 IMPORT_DIR = DATA_DIR / "import"
-ORDER_FILE = DATA_DIR / "importlist_data.yaml"
+RESULT_FILE = BASE_DIR / "created_users.txt"
 
+def load_member_ids():
+    with open(RESULT_FILE, encoding="utf-8") as f:
+        return [x.strip() for x in f if x.strip()]
 
-def load_import_sequence():
-    with open(ORDER_FILE, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+def build_import_files(yaml_name: str):
+    config = load_yaml(yaml_name)
+    member_ids = load_member_ids()
 
     result = []
 
-    for import_type in data.get("import_types", []):
+    for import_type, cfg in config["import_types"].items():
         file_path = IMPORT_DIR / f"{import_type}.xlsx"
 
-        if file_path.exists():
-            result.append((import_type, str(file_path)))
+        if "rules" in cfg:
+            build_tier_update_excel(member_ids, cfg, file_path)
+        else:
+            columns = {}
+            for row in cfg:
+                for k, v in row.items():
+                    columns[k] = v
+            build_wallet_excel(member_ids, columns, file_path)
+
+        result.append((import_type, str(file_path)))
 
     return result
+
+def load_import_sequence(yaml_name: str):
+    data = load_yaml(yaml_name)
+    return list(data["import_types"].keys())
