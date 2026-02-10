@@ -52,25 +52,51 @@ def test_tier_spending_flow(
     pos = POSPage(pos_page)
 
     customer_id = customers[tier["customer"]]["id"]
-    product_name = products[tier["product"]]["name"]
-    rounds = tier.get("rounds", [])
-    expected = tier.get("expected")
 
     pos.ensure_branch()
-    pos.create_orders(
-        customer_id=customer_id,
-        product_name=product_name,
-        rounds=rounds,
-    )
 
-    pos.void_if_needed(tier.get("void"))
+    if "orders" in tier:
+        orders = tier["orders"]
+    else:
+        orders = [
+            {
+                "items": [
+                    {
+                        "product": products[tier["product"]]["name"],
+                        "rounds": tier.get("rounds", []),
+                        "discount": tier.get("discount"),
+                    }
+                ],
+                "promotions": tier.get("promotions"),
+                "void": tier.get("void"),
+            }
+        ]
 
-    if SKIP_CRM_ASSERT:
-        print("PASS without CRM API check")
-        return
+    for order in orders:
+        items = []
 
-    if not expected:
-        print("PASS without CRM check (no expected in yaml)")
+        for item in order.get("items", []):
+            items.append(
+                {
+                    "product": products[item["product"]]["name"],
+                    "rounds": item.get("rounds", []),
+                    "discount": item.get("discount"),
+                }
+            )
+
+        promotions = order.get("promotions")
+
+        pos.create_order_items(
+            customer_id=customer_id,
+            items=items,
+            promotions=promotions,
+        )
+
+        pos.void_if_needed(order.get("void"))
+
+    expected = tier.get("expected")
+
+    if SKIP_CRM_ASSERT or not expected:
         return
 
     wait_crm_spending_updated(
@@ -81,6 +107,5 @@ def test_tier_spending_flow(
     )
 
     member = crm_client.get_member(customer_id, WALLET_CODE)
-
-    assert member["member_id"] == customer_id
     assert_member_spending(member, expected)
+

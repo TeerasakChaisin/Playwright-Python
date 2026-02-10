@@ -14,11 +14,6 @@ class POSPage:
         self.product_cards = page.locator(".card-body")
 
         self.promotion_button = page.get_by_role("button", name="Promotion")
-        self.promotion_checkbox = page.locator(
-            ".modal-body input.form-check-input"
-        ).first
-
-        self.close_popup = page.get_by_role("button", name="Close")
         self.confirm_button = page.get_by_role("button", name="Confirm")
         self.payment_button = page.locator(".checkout-action")
 
@@ -27,13 +22,14 @@ class POSPage:
         )
 
         self.saleman_button = page.get_by_role("button", name="back Select Sales")
-        self.saleman = page.locator(
-            ".form-outline input.form-control[type='text'][required]"
-        )
+        self.saleman = page.locator(".form-outline input.form-control[type='text'][required]")
         self.save_button = page.get_by_role("button", name="Save")
+
+        self.branch = page.get_by_role("combobox", name="Please select Branch")
 
         self.receipt = page.get_by_text("RECEIPT")
         self.receipt_table_rows = page.locator("table tbody tr")
+
         self.void_transaction_dropdown = (
             page.get_by_role("list").locator("a").filter(has_text="Void")
         )
@@ -45,9 +41,6 @@ class POSPage:
             "Close", exact=True
         )
 
-        self.branch = page.get_by_role("combobox", name="Please select Branch")
-        self.branch_code = page.get_by_role("option", name="Test")
-
     def ensure_branch(self):
         self.branch.click()
 
@@ -58,39 +51,16 @@ class POSPage:
             or ""
         )
 
-        if (
-            "TMES BR : 02" not in selected
-            and "Test" not in selected
-#            and "TMES HQ (Branch)" not in selected
-        ):
-            self.page.get_by_role("option", name="TMES BR : 02").click()
-
-    def should_skip_before_pos(tier):
-        expected = tier.get("expected")
-        void_cfg = tier.get("void")
-
-        if not expected or all(v is None for v in expected.values()):
-            if isinstance(void_cfg, dict):
-                return None
-            return "NO API Checking"
-
-        return None
-
-    def customer_item(self, display: str):
-        return self.page.get_by_text(display)
+        if "Test" not in selected and "TMES BR : 02" not in selected:
+            self.page.get_by_role("option", name="Test").click()
 
     def select_saleman(self):
         self.saleman_button.click()
         self.saleman.fill("test")
         self.save_button.click()
-
-    def open_customer_dialog(self):
-        expect(self.select_customer_button).to_be_visible(timeout=30000)
-        self.select_customer_button.click()
-
-    def search_customer(self, customer_id: str):
-        expect(self.search_customer_input).to_be_visible(timeout=30000)
-        self.search_customer_input.fill(customer_id)
+    
+    def customer_item(self, display: str):
+        return self.page.get_by_text(display)
 
     def choose_customer(self, customer_id: str):
         item = self.customer_item(customer_id).first
@@ -101,49 +71,55 @@ class POSPage:
         self.save_customer_button.click()
 
     def select_customer(self, customer_id: str):
-        self.open_customer_dialog()
-        self.search_customer(customer_id)
+        self.select_customer_button.click()
+        self.search_customer_input.fill(customer_id)
         self.choose_customer(customer_id)
 
     def open_product_search(self):
-        self.page.wait_for_load_state("networkidle")
-        expect(self.search_product_button).to_be_visible(timeout=5000)
         self.search_product_button.click()
+        expect(self.page.locator(".modal-dialog")).to_be_visible(timeout=10000)
 
-        modal = self.page.locator(".modal-dialog")
-        expect(modal).to_be_visible(timeout=10000)
-
-        expect(self.product_cards.first).to_be_visible(timeout=10000)
-
-    def add_product(self, product_name: str, times: int = 1):
+    def add_product(self, product_name: str, times: int):
         self.open_product_search()
 
         card = self.product_cards.filter(has_text=product_name).first
-        expect(card).to_be_visible(timeout=10000)
-
         add_button = card.get_by_role("button", name="ADD TO CART")
-        expect(add_button).to_be_visible(timeout=5000)
 
         for _ in range(times):
             add_button.click()
 
-        expect(self.close_popup).to_be_visible(timeout=5000)
-        self.close_popup.click()
-
+        self.page.get_by_role("button", name="Close").click()
         expect(self.page.locator(".modal-dialog")).not_to_be_visible(timeout=10000)
-        self.expect_cart_quantity
 
-    def wait_promotion_modal_ready(self):
-        expect(self.confirm_button).to_be_visible(timeout=5000)
+    def cart_line_by_product(self, product_name: str):
+        return self.page.locator(".cart-pos-product-line").filter(
+            has_text=product_name
+        ).last
+
+    def apply_discount(self, product_name: str, discount: dict | None):
+        if not discount:
+            return
+
+        line = self.cart_line_by_product(product_name)
+
+        discount_type_input = line.locator(
+            ".cart-pos-product-line-action-discount-type input.select-input"
+        )
+        discount_amount_input = line.locator(
+            ".cart-pos-product-line-action-discount input[type='number']"
+        )
+
+        discount_type_input.click()
+
+        option = self.page.locator(".select-option-text").filter(
+            has_text=str(discount["type"])
+        ).first
+        option.click()
+
+        discount_amount_input.fill(str(discount["amount"]))
 
     def uncheck_all_promotions(self):
-        self.wait_promotion_modal_ready()
-
         checkboxes = self.page.locator(".modal-body input.form-check-input")
-
-        if not checkboxes.first.is_visible():
-            self.confirm_button.click()
-            return
 
         total = checkboxes.count()
         for i in range(total):
@@ -151,34 +127,34 @@ class POSPage:
             if cb.is_checked():
                 cb.uncheck(force=True)
 
-        self.confirm_button.click()
-    
-    def expect_cart_quantity(self, expected_qty: int):
-        qty = self.page.locator('input[type="number"]').first
-        expect(qty).to_have_value(str(expected_qty), timeout=10000)
+    def check_promotions_by_name(self, promotions: list | None):
+        if not promotions:
+            return
 
-    def void_transaction(self, row_index: int, reason: str):
-        row = self.receipt_table_rows.nth(row_index)
+        for name in promotions:
+            container = self.page.locator(".promotion-container").filter(
+                has_text=name
+            ).first
 
-        action_cell = row.locator("td").first
-        action_cell.click()
+            if not container.is_visible():
+                continue
 
-        expect(self.void_transaction_dropdown).to_be_visible(timeout=5000)
-        self.void_transaction_dropdown.click()
+            checkbox = container.locator("input.form-check-input")
 
-        expect(self.void_textarea).to_be_visible(timeout=5000)
-        self.void_textarea.fill(reason)
+            if not checkbox.is_checked():
+                checkbox.check(force=True)
 
-        expect(self.confirm_button).to_be_enabled(timeout=5000)
-        self.confirm_button.click()
-
-        expect(self.void_success_alert).to_be_visible(timeout=10000)
-        self.void_close_button.click()
-
-    def proceed_to_payment(self):
+    def proceed_to_payment(self, promotions: list | None):
         self.promotion_button.click()
 
+        modal = self.page.locator(".modal-body")
+        expect(modal).to_be_visible()
+
         self.uncheck_all_promotions()
+        if promotions:
+            self.check_promotions_by_name(promotions)
+
+        self.confirm_button.click()
 
         self.payment_button.click()
         self.confirm_button.click()
@@ -188,27 +164,54 @@ class POSPage:
 
         receipt_page = receipt_page_info.value
         receipt_page.wait_for_load_state(timeout=80000)
-        print(receipt_page.url)
         receipt_page.close()
 
-    def create_orders(self, customer_id, product_name, rounds):
-        if not rounds:
+    def create_order_items(self, customer_id: str, items: list, promotions=None):
+        self.select_saleman()
+        self.select_customer(customer_id)
+
+        for item in items:
+            product = item["product"]
+            discount = item.get("discount")
+
+            for r in item.get("rounds", []):
+                times = r.get("times", 1)
+
+                self.add_product(product, times=times)
+
+                if discount:
+                    self.apply_discount(product, discount)
+
+        self.proceed_to_payment(promotions)
+
+    def open_receipt(self):
+        self.receipt.click()
+        expect(self.receipt_table_rows.first).to_be_visible(timeout=10000)
+
+    def void_transaction(self, row_index: int, reason: str | None = None):
+        row = self.receipt_table_rows.nth(row_index)
+
+        action_cell = row.locator("td").first
+        action_cell.click()
+
+        expect(self.void_transaction_dropdown).to_be_visible(timeout=5000)
+        self.void_transaction_dropdown.click()
+
+        if reason:
+            expect(self.void_textarea).to_be_visible(timeout=5000)
+            self.void_textarea.fill(reason)
+
+        self.confirm_button.click()
+
+        expect(self.void_success_alert).to_be_visible(timeout=10000)
+        self.void_close_button.click()
+
+    def void_if_needed(self, void_cfg):
+        if not isinstance(void_cfg, dict):
             return
-
-        for r in rounds:
-            times = r.get("times", 0)
-            if times > 0:
-                self.select_saleman()
-                self.select_customer(customer_id)
-                self.add_product(product_name, times)
-                self.proceed_to_payment()
-
-    def void_if_needed(self, void_config):
-        if not isinstance(void_config, dict):
-            return
-
-        row_index = void_config.get("row", 0)
-        reason = void_config.get("reason", "Auto void by test")
 
         self.open_receipt()
-        self.void_transaction(row_index, reason)
+        self.void_transaction(
+            row_index=void_cfg.get("row", 0),
+            reason=void_cfg.get("reason"),
+        )
