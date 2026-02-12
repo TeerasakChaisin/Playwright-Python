@@ -22,7 +22,7 @@ products:
 
 
 tiers:
-  - name: testing
+  - name: fulloption
     customer: regular_2500
     orders:
       - items:
@@ -40,8 +40,14 @@ tiers:
               amount: 100
         promotions:
           - ของแถมราคาถูกสุด
-          - Promo2
-
+        privilege:
+          coupon:
+            - 5.91
+          redeem:
+            - 200
+        bill_discount: 
+          type: THB 
+          amount: 100
       - items:
           - product: main
             rounds:
@@ -50,7 +56,7 @@ tiers:
           row: 0
           reason: Void 1st transaction from playwright test
 
-tiers:
+
   - name: test2
     customer: white_5000
     orders:

@@ -168,44 +168,51 @@ class POSPage:
     def open_privilege(self):
             self.privilege.click()
 
-    def apply_redeem(self, points):
-        if points is None:
+    def apply_coupon(self, coupons):
+        if not coupons:
             return
 
-        self.redeem.click()
+        if not isinstance(coupons, list):
+            coupons = [coupons]
 
-        card = self.redeem_card.filter(has_text=str(points)).first
-        expect(card).to_be_visible()
-        card.click()
+        for coupon in coupons:
+            self.open_privilege()
 
-        expect(self.confirm_redeem).to_be_visible()
-        self.confirm_button.click()
+            self.coupon.click()
+            expect(self.coupon_modal).to_be_visible()
 
-    def apply_coupon(self, coupon):
-        if coupon is None:
+            self.coupon_textbox.fill(str(coupon))
+            self.confirm_button.first.click()
+            self.confirm_button.nth(1).click()
+
+    def apply_redeem(self, points_list):
+        if not points_list:
             return
 
-        self.coupon.click()
-        expect(self.coupon_modal).to_be_visible()
+        if not isinstance(points_list, list):
+            points_list = [points_list]
 
-        self.coupon_textbox.fill(str(coupon))
-        self.confirm_button.first.click()
-        self.confirm_button.nth(1).click()
+        for points in points_list:
+            self.open_privilege()
+
+            self.redeem.click()
+
+            card = self.redeem_card.filter(has_text=str(points)).first
+            expect(card).to_be_visible()
+            card.click()
+
+            expect(self.confirm_redeem).to_be_visible()
+            self.confirm_button.click()
 
     def apply_privileges(self, privileges: dict | None):
         if not privileges:
             return
 
-        coupon = privileges.get("coupon")
+        coupons = privileges.get("coupons") or privileges.get("coupon")
         redeem_points = privileges.get("redeem_points")
 
-        if coupon:
-            self.open_privilege()
-            self.apply_coupon(coupon)
-
-        if redeem_points:
-            self.open_privilege()
-            self.apply_redeem(redeem_points)
+        self.apply_coupon(coupons)
+        self.apply_redeem(redeem_points)
 
     def apply_bill_discount(self, discount: dict | None):
         if not discount:
@@ -233,7 +240,6 @@ class POSPage:
 
         cleaned = re.sub(r"[^\d.\-]", "", text)
         return float(cleaned or 0)
-
 
     def _get_price_from_row(self, row):
         current = row.locator(
@@ -416,6 +422,7 @@ class POSPage:
         self.apply_privileges(privileges)
 
         self.apply_bill_discount(bill_discount)
+
         self.assert_cart_totals()
         self.assert_checkout_totals()
 
