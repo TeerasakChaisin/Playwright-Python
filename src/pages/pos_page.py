@@ -17,6 +17,8 @@ class POSPage:
         self.confirm_button = page.get_by_role("button", name="Confirm")
         self.payment_button = page.locator(".checkout-action")
 
+        self.close_button = page.get_by_role("button", name="Close")
+
         self.payout_confirm_button = page.get_by_label("Confirm Payment").get_by_role(
             "button", name="Confirm"
         )
@@ -40,6 +42,24 @@ class POSPage:
         self.void_close_button = page.locator("#layout-container").get_by_text(
             "Close", exact=True
         )
+
+        self.privilege = page.get_by_role("button", name="Privilege")
+
+        self.coupon = page.get_by_text("COUPON", exact=True)
+        self.coupon_modal = page.locator("#couponModal")
+        self.coupon_textbox = self.coupon_modal.locator("input[type='text']")
+        self.close_coupon = page.locator("#couponModal").get_by_role("button", name="Close")
+
+        self.redeem = page.get_by_text("REDEEM")
+        self.redeem_card = page.locator(".redeem-card")
+        self.confirm_redeem = page.get_by_role("heading", name="Confirm Redeem")
+        
+        self.bill_discount_modal = page.locator("#billDiscountModal")
+
+        self.bill_discount = page.get_by_role("button", name="Bill Discount")
+        self.bill_discount_type = self.bill_discount_modal.locator(".select-input")
+        self.bill_discount_amount = self.bill_discount_modal.locator("input[type='text']")
+
 
     def ensure_branch(self):
         self.branch.click()
@@ -88,7 +108,7 @@ class POSPage:
         for _ in range(times):
             add_button.click()
 
-        self.page.get_by_role("button", name="Close").click()
+        self.close_button.click()
         expect(self.page.locator(".modal-dialog")).not_to_be_visible(timeout=10000)
 
     def cart_line_by_product(self, product_name: str):
@@ -144,17 +164,86 @@ class POSPage:
             if not checkbox.is_checked():
                 checkbox.check(force=True)
 
-    def proceed_to_payment(self, promotions: list | None):
+    def open_privilege(self):
+            self.privilege.click()
+
+    def apply_redeem(self, points):
+        if points is None:
+            return
+
+        self.redeem.click()
+
+        card = self.redeem_card.filter(has_text=str(points)).first
+        expect(card).to_be_visible()
+        card.click()
+
+        expect(self.confirm_redeem).to_be_visible()
+        self.confirm_button.click()
+
+    def apply_coupon(self, coupon):
+        if coupon is not None:
+            return
+
+        self.coupon.click()
+        expect(self.coupon_modal).to_be_visible()
+
+        self.coupon_textbox.fill(str(coupon))
+        self.confirm_button.first.click()
+        self.confirm_button.nth(1).click()
+
+    def apply_privileges(self, privileges: dict | None):
+        if not privileges:
+            return
+
+        coupon = privileges.get("coupon")
+        redeem_points = privileges.get("redeem_points")
+
+        if coupon:
+            self.open_privilege()
+            self.apply_coupon(coupon)
+
+        if redeem_points:
+            self.open_privilege()
+            self.apply_redeem(redeem_points)
+
+    def apply_bill_discount(self, discount: dict | None):
+        if not discount:
+            return
+
+        discount_type = discount.get("type")
+        amount = discount.get("amount")
+
+        self.bill_discount.click()
+        expect(self.bill_discount_modal).to_be_visible()
+
+        self.bill_discount_type.click()
+        self.page.get_by_text(discount_type, exact=True).click()
+
+        self.bill_discount_amount.fill(str(amount))
+
+        self.confirm_button.click()
+
+    def proceed_to_payment(
+    self,
+    promotions: list | None,
+    privileges: dict | None = None,
+    bill_discount: dict | None = None,
+    ):
         self.promotion_button.click()
 
         modal = self.page.locator(".modal-body")
         expect(modal).to_be_visible()
 
         self.uncheck_all_promotions()
+
         if promotions:
             self.check_promotions_by_name(promotions)
 
         self.confirm_button.click()
+
+        self.apply_privileges(privileges)
+
+        self.apply_bill_discount(bill_discount)
 
         self.payment_button.click()
         self.confirm_button.click()
@@ -166,7 +255,14 @@ class POSPage:
         receipt_page.wait_for_load_state(timeout=80000)
         receipt_page.close()
 
-    def create_order_items(self, customer_id: str, items: list, promotions=None):
+    def create_order_items(
+    self,
+    customer_id: str,
+    items: list,
+    promotions=None,
+    privileges=None,
+    bill_discount=None,
+    ):
         self.select_saleman()
         self.select_customer(customer_id)
 
@@ -176,13 +272,12 @@ class POSPage:
 
             for r in item.get("rounds", []):
                 times = r.get("times", 1)
-
                 self.add_product(product, times=times)
 
-                if discount:
-                    self.apply_discount(product, discount)
+            if discount:
+                self.apply_discount(product, discount)
 
-        self.proceed_to_payment(promotions)
+        self.proceed_to_payment(promotions, privileges, bill_discount)
 
     def open_receipt(self):
         self.receipt.click()

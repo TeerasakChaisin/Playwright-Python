@@ -1,19 +1,22 @@
 customers:
   regular_2500:
-    id: TH20260541192M
+    id: TH20260541222M
 
   white_5000:
-    id: TH20260541214M
+    id: TH20260541222M
 
   white_7500:
-    id: TH20260541072M
+    id: TH20260541222M
 
+wallet_code: GCTHB
 
 products:
   main:
     name: (100001) TMES SAMPLE#100001
   second:
     name: (100003) TMES SAMPLE#100003
+  uat:
+    name: (PFA03005_030MLE) Revive Omega-9 Repair Hair Serum Oil_30ML
 
 
 tiers:
@@ -49,10 +52,21 @@ tiers:
   - name: test2
     customer: white_5000
     orders:
-      - items:
-          - product: main
-            rounds:
-              - times: 2
+    - items:
+        - product: main
+          rounds:
+            - times: 10
+          discount:
+            type: THB
+            amount: 100
+      promotions:
+        - Promo1
+      privilege:
+        coupon: 5.91
+        redeem_points: 200
+      bill_discount:
+        type: THB
+        amount: 100
 
 
 #    For API checking use in line order

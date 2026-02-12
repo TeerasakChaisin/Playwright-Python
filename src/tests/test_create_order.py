@@ -9,9 +9,6 @@ from utils.waiters import wait_crm_spending_updated
 from utils.pos_checking import assert_member_spending
 
 
-WALLET_CODE = "GCTHB"
-
-
 def is_true_env(name: str) -> bool:
     return os.getenv(name, "").lower() in {"1", "true", "yes"}
 
@@ -85,11 +82,15 @@ def test_tier_spending_flow(
             )
 
         promotions = order.get("promotions")
+        privileges = order.get("privilege")
+        bill_discount = order.get("bill_discount")
 
         pos.create_order_items(
             customer_id=customer_id,
             items=items,
             promotions=promotions,
+            privileges=privileges,
+            bill_discount=bill_discount,
         )
 
         pos.void_if_needed(order.get("void"))
@@ -102,10 +103,10 @@ def test_tier_spending_flow(
     wait_crm_spending_updated(
         crm=crm_client,
         member_id=customer_id,
-        wallet_code=WALLET_CODE,
+        wallet_code = tier["wallet_code"],
         expected_amount=expected["total_spending_current_period"],
     )
 
-    member = crm_client.get_member(customer_id, WALLET_CODE)
+    member = crm_client.get_member(customer_id, tier["wallet_code"])
     assert_member_spending(member, expected)
 

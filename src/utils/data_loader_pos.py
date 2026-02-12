@@ -24,9 +24,15 @@ def get_customers():
 def get_products():
     return _load_yaml()["products"]
 
-
 def get_tiers():
-    return _load_yaml()["tiers"]
+    data = _load_yaml()
+    wallet_code = data.get("wallet_code", "GCTHB")
+    tiers = data.get("tiers", [])
+
+    for t in tiers:
+        t["wallet_code"] = t.get("wallet_code", wallet_code)
+
+    return tiers
 
 
 POS_USERNAME = os.getenv("POS_USERNAME")
