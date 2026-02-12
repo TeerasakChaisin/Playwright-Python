@@ -184,6 +184,11 @@ UPDATE PROJECT
 1) สำรองโค้ดที่แก้ไว้ (เผื่อ rollback)
 git stash
 
+เก็บไฟล์ .env (ทำครั้งเดียว)
+git update-index --skip-worktree .env
+ยกเลิก
+git update-index --no-skip-worktree .env
+
 2) Update project
 2.1) ดึงโค้ดล่าสุด
 git pull origin main

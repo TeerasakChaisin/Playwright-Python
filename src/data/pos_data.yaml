@@ -15,8 +15,10 @@ products:
     name: (100001) TMES SAMPLE#100001
   second:
     name: (100003) TMES SAMPLE#100003
-  uat:
-    name: (PFA03005_030MLE) Revive Omega-9 Repair Hair Serum Oil_30ML
+  third:
+    name: (900009) TMES Tester #900009
+  fourt:
+    name: (300000) Sample TMES CC#300000
 
 
 tiers:
@@ -55,18 +57,25 @@ tiers:
     - items:
         - product: main
           rounds:
-            - times: 10
+            - times: 3
           discount:
-            type: THB
-            amount: 100
-      promotions:
-        - Promo1
-      privilege:
-        coupon: 5.91
-        redeem_points: 200
-      bill_discount:
-        type: THB
-        amount: 100
+              type: "%"
+              amount: 10
+        - product: second
+          rounds:
+            - times: 2
+          discount:
+              type: "THB"
+              amount: 100
+        - product: third
+          rounds:
+            - times: 2
+          discount:
+              type: "Free"
+              amount: 0
+        - product: fourt
+          rounds:
+            - times: 2
 
 
 #    For API checking use in line order

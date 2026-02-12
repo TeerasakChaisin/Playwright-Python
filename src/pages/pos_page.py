@@ -1,3 +1,4 @@
+import re
 from playwright.sync_api import Page, expect
 
 
@@ -181,7 +182,7 @@ class POSPage:
         self.confirm_button.click()
 
     def apply_coupon(self, coupon):
-        if coupon is not None:
+        if coupon is None:
             return
 
         self.coupon.click()
@@ -223,6 +224,177 @@ class POSPage:
 
         self.confirm_button.click()
 
+    def _get_cart_rows(self):
+        return self.page.locator(".cart-pos-product-line")
+
+    def _parse_money(self, text: str) -> float:
+        if not text:
+            return 0.0
+
+        cleaned = re.sub(r"[^\d.\-]", "", text)
+        return float(cleaned or 0)
+
+
+    def _get_price_from_row(self, row):
+        current = row.locator(
+            ".cart-pos-product-line-detail-defualt-price-current"
+        )
+
+        if current.count() > 0:
+            return self._parse_money(current.inner_text())
+
+        sale = row.locator(
+            ".cart-pos-product-line-detail-defualt-price-sale"
+        )
+
+        return self._parse_money(sale.inner_text())
+
+    def _calculate_row_total(self, price, qty, discount_amount, discount_type, ui_total=None):
+        subtotal = price * qty
+        dtype = (discount_type or "").strip().lower()
+
+        if "free" in dtype:
+            return ui_total
+
+        if not discount_amount:
+            return subtotal
+
+        if "%" in dtype:
+            return subtotal - (subtotal * discount_amount / 100)
+
+        return subtotal - (discount_amount * qty)
+
+    def assert_cart_totals(self):
+        rows = self._get_cart_rows()
+        count = rows.count()
+
+        assert count > 0, "Cart is empty"
+
+        sum_rows = 0
+
+        for i in range(count):
+            row = rows.nth(i)
+
+            name = row.locator(
+                ".cart-pos-product-line-detail-name"
+            ).inner_text().strip()
+
+            price = self._get_price_from_row(row)
+
+            qty = int(
+                row.locator("input[type='number']").first.input_value() or 0
+            )
+
+            discount_amount = float(
+                row.locator("input[type='number']").nth(1).input_value() or 0
+            )
+
+            discount_type = row.locator(
+                ".cart-pos-product-line-action-discount-type input.select-input"
+            ).input_value()
+
+            ui_total = self._parse_money(
+                row.locator(
+                    ".cart-pos-product-line-action-total"
+                ).inner_text()
+            )
+
+            expected = round(
+                self._calculate_row_total(
+                    price,
+                    qty,
+                    discount_amount,
+                    discount_type,
+                    ui_total,
+                ),
+                2,
+            )
+
+            actual = round(ui_total, 2)
+
+            print(
+                f"price={price} qty={qty}"
+                f"discount={discount_amount} type={discount_type}"
+                f"expected={expected} actual={actual}"
+            )
+
+            assert expected == actual, (
+                f"{name} expected {expected} but got {actual}"
+            )
+
+            sum_rows += actual
+
+        ui_total = self._parse_money(
+            self.page.locator(
+                ".cart-pos-total-result-price-detail"
+            ).inner_text()
+        )
+
+        expected_total = round(sum_rows, 2)
+        actual_total = round(ui_total, 2)
+
+        print(
+            f"Expect TOTAL | expected={expected_total} actual={actual_total}"
+        )
+
+        assert expected_total == actual_total, (
+            f"Expect total mismatch {expected_total} != {actual_total}"
+        )
+
+    def assert_checkout_totals(self):
+        container = self.page.locator(".checkout-pos-calculate")
+        lines = container.locator(".checkout-pos-calculate-line")
+
+        count = lines.count()
+        values = {}
+        vat_rate = 0
+
+        for i in range(count):
+            line = lines.nth(i)
+
+            name = line.locator(".checkout-pos-calculate-name").inner_text().strip()
+            value = self._parse_money(
+                line.locator(".checkout-pos-calculate-content").inner_text()
+            )
+
+            values[name] = value
+
+            m = re.search(r"VAT\s*(\d+)%", name)
+            if m:
+                vat_rate = float(m.group(1))
+
+        total = values.get("Sub Grand Total :")
+        pretax = values.get("Pretax Total :")
+        vat = 0
+
+        if vat_rate > 0:
+            vat = values.get(f"VAT {int(vat_rate)}% :", 0)
+            expected_vat = round(total * vat_rate / (100 + vat_rate), 2)
+            expected_pretax = round(total - expected_vat, 2)
+        else:
+            expected_vat = 0
+            expected_pretax = total
+
+        print(
+            f"Checkout | rate={vat_rate}% | "
+            f"VAT {expected_vat}/{vat} | "
+            f"Pretax {expected_pretax}/{pretax} | "
+            f"SubGrand {total}"
+        )
+
+        assert round(pretax, 2) == round(expected_pretax, 2)
+        assert round(vat, 2) == round(expected_vat, 2)
+
+        grand_total = self._parse_money(
+            self.page.locator(".grand-total-data").inner_text()
+        )
+
+        print(f"GrandTotal | expected={total} actual={grand_total}")
+
+        assert round(total, 2) == round(grand_total, 2), (
+            f"Grand total mismatch {total} != {grand_total}"
+        )
+
     def proceed_to_payment(
     self,
     promotions: list | None,
@@ -244,6 +416,8 @@ class POSPage:
         self.apply_privileges(privileges)
 
         self.apply_bill_discount(bill_discount)
+        self.assert_cart_totals()
+        self.assert_checkout_totals()
 
         self.payment_button.click()
         self.confirm_button.click()
