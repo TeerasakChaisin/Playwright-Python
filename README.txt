@@ -102,6 +102,11 @@ Headed Mode
 $env:ENV="DEV"; pytest --headed -k member_white_5000 -v
 ```
 
+View Print
+
+```bash
+$env:ENV="DEV"; pytest -s -k AT- -v 
+```
 
 ---
 

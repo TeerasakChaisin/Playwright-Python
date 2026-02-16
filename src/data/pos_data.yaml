@@ -1,60 +1,138 @@
 customers:
   regular_2500:
-    id: TH20260541222M
+    id: TH20260541252M
 
   white_5000:
-    id: TH20260541222M
+    id: TH20260541251M
 
   white_7500:
-    id: TH20260541222M
+    id: TH20260541252M
 
 wallet_code: GCTHB
 
 products:
   main:
-    name: (100001) TMES SAMPLE#100001
+    name: "(AM0001) TEST SAMPLE : AM0001"
   second:
-    name: (100003) TMES SAMPLE#100003
+    name: "(AM0002) TEST SAMPLE : AM0002"
   third:
-    name: (900009) TMES Tester #900009
-  fourt:
-    name: (300000) Sample TMES CC#300000
+    name: "(AM0003) TEST SAMPLE : AM0003"
 
 
 tiers:
-  - name: fulloption
+  - name: AT-Case1
     customer: regular_2500
     orders:
       - items:
           - product: main
             rounds:
-              - times: 3
+              - times: 1
             discount:
-              type: "%"
-              amount: 10
+              type: "Free"
+              amount: 0
           - product: second
             rounds:
               - times: 2
             discount:
               type: THB
-              amount: 100
+              amount: 0.13
+          - product: third
+            rounds:
+              - times: 3
+            discount:
+              type: "%"
+              amount: 1.3
         promotions:
-          - ของแถมราคาถูกสุด
+          - Black 15%
+          - Black 127.27 THB
         privilege:
           coupon:
-            - 5.91
+            - Testdis
+            - Testdisper
           redeem:
-            - 200
+            - 150
         bill_discount: 
-          type: THB 
-          amount: 100
+          type: "THB" 
+          amount: 99.99
+#      - items:
+#          - product: main
+#            rounds:
+#              - times: 1
+#        void:
+#          row: 0
+#          reason: Void 1st transaction from playwright test
+
+  - name: AT-Case2
+    customer: regular_2500
+    orders:
       - items:
           - product: main
             rounds:
               - times: 1
-        void:
-          row: 0
-          reason: Void 1st transaction from playwright test
+            discount:
+              type: "Free"
+              amount: 0
+          - product: second
+            rounds:
+              - times: 2
+            discount:
+              type: THB
+              amount: 0.13
+          - product: third
+            rounds:
+              - times: 3
+            discount:
+              type: "%"
+              amount: 1.3
+        promotions:
+          - Black 127.27 THB
+        privilege:
+          coupon:
+            - Testdisper
+          redeem:
+            - 150
+        bill_discount: 
+          type: "%" 
+          amount: 15
+
+  - name: AT-Case3
+    customer: regular_2500
+    orders:
+      - items:
+          - product: main
+            rounds:
+              - times: 1
+        promotions:
+          - Dis 10%
+        privilege:
+          coupon:
+            - CouDisFix%
+            - CouDisFixTHB
+            - 15.47
+        bill_discount: 
+          type: "THB" 
+          amount: 99.99
+
+  - name: AT-Case4
+    customer: regular_2500
+    orders:
+      - items:
+          - product: main
+            rounds:
+              - times: 1
+        promotions:
+          - Dis 10%
+        privilege:
+          coupon:
+            - CouDisFixTHB
+            - CouDisFix%
+            - 15.47
+        bill_discount: 
+          type: "THB" 
+          amount: 99.99
+
+
+
 
 
   - name: test2
@@ -63,25 +141,22 @@ tiers:
     - items:
         - product: main
           rounds:
-            - times: 3
+            - times: 10
           discount:
               type: "%"
               amount: 10
         - product: second
           rounds:
-            - times: 2
+            - times: 10
           discount:
               type: "THB"
               amount: 100
         - product: third
           rounds:
-            - times: 2
+            - times: 10
           discount:
               type: "Free"
               amount: 0
-        - product: fourt
-          rounds:
-            - times: 2
 
 
 #    For API checking use in line order

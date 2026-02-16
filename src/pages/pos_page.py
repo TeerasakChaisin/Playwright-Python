@@ -72,8 +72,8 @@ class POSPage:
             or ""
         )
 
-        if "Test" not in selected and "TMES BR : 02" not in selected:
-            self.page.get_by_role("option", name="Test").click()
+        if "Test" not in selected:
+            self.page.get_by_role("option", name="Automate").click()
 
     def select_saleman(self):
         self.saleman_button.click()
@@ -175,44 +175,58 @@ class POSPage:
         if not isinstance(coupons, list):
             coupons = [coupons]
 
-        for coupon in coupons:
-            self.open_privilege()
+        self.open_privilege()
+        self.coupon.click()
 
-            self.coupon.click()
-            expect(self.coupon_modal).to_be_visible()
+        expect(self.coupon_modal).to_be_visible()
 
-            self.coupon_textbox.fill(str(coupon))
+        for code in coupons:
+            before = self.page.locator(".coupon-line").count()
+
+            self.coupon_textbox.fill(str(code))
             self.confirm_button.first.click()
-            self.confirm_button.nth(1).click()
 
-    def apply_redeem(self, points_list):
-        if not points_list:
+            expect(self.page.locator(".coupon-line")).to_have_count(before + 1, timeout=10000)
+
+        self.confirm_button.nth(1).click()
+
+    def apply_redeem(self, redeem):
+        if not redeem:
             return
 
-        if not isinstance(points_list, list):
-            points_list = [points_list]
+        if not isinstance(redeem, list):
+            redeem = [redeem]
 
-        for points in points_list:
+        for points in redeem:
             self.open_privilege()
-
             self.redeem.click()
 
-            card = self.redeem_card.filter(has_text=str(points)).first
-            expect(card).to_be_visible()
-            card.click()
+            card = self.page.locator(".redeem-card").filter(
+                has_text=re.compile(fr"REDEEM\s*{points}\s*POINT")
+            )
+
+            expect(card).to_be_visible(timeout=10000)
+            card.first.click()
 
             expect(self.confirm_redeem).to_be_visible()
             self.confirm_button.click()
-
+            
     def apply_privileges(self, privileges: dict | None):
-        if not privileges:
+        if privileges is None:
             return
 
-        coupons = privileges.get("coupons") or privileges.get("coupon")
-        redeem_points = privileges.get("redeem_points")
+        coupon = privileges.get("coupon")
+        redeem = privileges.get("redeem")
 
-        self.apply_coupon(coupons)
-        self.apply_redeem(redeem_points)
+        print("privileges:", privileges)
+        print("coupon:", coupon)
+        print("redeem:", redeem)
+
+        if coupon is not None:
+            self.apply_coupon(coupon)
+
+        if redeem is not None:
+            self.apply_redeem(redeem)
 
     def apply_bill_discount(self, discount: dict | None):
         if not discount:
@@ -347,59 +361,117 @@ class POSPage:
             f"Expect total mismatch {expected_total} != {actual_total}"
         )
 
-    def assert_checkout_totals(self):
+    def get_cart_items_total(self):
+        rows = self._get_cart_rows()
+        count = rows.count()
+
+        total = 0
+
+        for i in range(count):
+            row = rows.nth(i)
+
+            value = self._parse_money(
+                row.locator(".cart-pos-product-line-action-total").inner_text()
+            )
+
+            total += value
+
+        return round(total, 2)
+
+    def assert_checkout_totals(self, bill_discount=None):
         container = self.page.locator(".checkout-pos-calculate")
         lines = container.locator(".checkout-pos-calculate-line")
 
-        count = lines.count()
-        values = {}
+        running = self.get_cart_items_total()
+
+        print("\n========== CHECKOUT DEBUG ==========")
+        print(f"Cart Start : {running}")
+
         vat_rate = 0
+        vat_ui = 0
+        pretax_ui = 0
+        subgrand_ui = 0
+
+        count = lines.count()
 
         for i in range(count):
             line = lines.nth(i)
 
             name = line.locator(".checkout-pos-calculate-name").inner_text().strip()
-            value = self._parse_money(
+            ui_value = self._parse_money(
                 line.locator(".checkout-pos-calculate-content").inner_text()
             )
 
-            values[name] = value
+            before = running
 
-            m = re.search(r"VAT\s*(\d+)%", name)
-            if m:
-                vat_rate = float(m.group(1))
+            if "VAT" in name:
+                m = re.search(r"(\d+)%", name)
+                vat_rate = float(m.group(1)) if m else 0
 
-        total = values.get("Sub Grand Total :")
-        pretax = values.get("Pretax Total :")
-        vat = 0
+                expected = round(running * vat_rate / (100 + vat_rate), 2)
 
-        if vat_rate > 0:
-            vat = values.get(f"VAT {int(vat_rate)}% :", 0)
-            expected_vat = round(total * vat_rate / (100 + vat_rate), 2)
-            expected_pretax = round(total - expected_vat, 2)
-        else:
-            expected_vat = 0
-            expected_pretax = total
+                print(
+                    f"[VAT] {before} * {vat_rate}/(100+rate) = {expected} | UI={ui_value}"
+                )
 
-        print(
-            f"Checkout | rate={vat_rate}% | "
-            f"VAT {expected_vat}/{vat} | "
-            f"Pretax {expected_pretax}/{pretax} | "
-            f"SubGrand {total}"
-        )
+                assert round(expected, 2) == round(ui_value, 2)
 
-        assert round(pretax, 2) == round(expected_pretax, 2)
-        assert round(vat, 2) == round(expected_vat, 2)
+                vat_ui = ui_value
+
+            elif "Pretax" in name:
+                expected = round(running - vat_ui, 2)
+
+                print(
+                    f"[Pretax] {running} - {vat_ui} = {expected} | UI={ui_value}"
+                )
+
+                assert round(expected, 2) == round(ui_value, 2)
+
+                pretax_ui = ui_value
+
+            elif "Sub Grand" in name:
+                expected = round(running, 2)
+
+                print(
+                    f"[SubGrand] running = {expected} | UI={ui_value}"
+                )
+
+                assert round(expected, 2) == round(ui_value, 2)
+
+                subgrand_ui = ui_value
+
+            else:
+                after = round(before + ui_value, 2)
+
+                percent_match = re.search(r"(\d+(\.\d+)?)%", name)
+
+                if percent_match:
+                    rate = float(percent_match.group(1))
+                    expected = round(before * rate / 100, 2)
+
+                    print(
+                        f"[Adjustment %] {name}\n"
+                        f"   {before} * {rate}% = {expected}\n"
+                        f"   after = {after}"
+                    )
+                else:
+                    print(
+                        f"[Adjustment THB] {name}\n"
+                        f"   before={before}\n"
+                        f"   change={ui_value}\n"
+                        f"   after ={after}"
+                    )
+
+                running = after
 
         grand_total = self._parse_money(
             self.page.locator(".grand-total-data").inner_text()
         )
 
-        print(f"GrandTotal | expected={total} actual={grand_total}")
+        print(f"\nGrandTotal = {running} | UI={grand_total}")
+        print("====================================\n")
 
-        assert round(total, 2) == round(grand_total, 2), (
-            f"Grand total mismatch {total} != {grand_total}"
-        )
+        assert round(running, 2) == round(grand_total, 2)
 
     def proceed_to_payment(
     self,

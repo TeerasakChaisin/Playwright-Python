@@ -1,5 +1,5 @@
 import pytest
-from utils.assert_amount import assert_amount_equal
+from utils.assertion import assert_amount_equal
 
 
 def should_skip_before_pos(tier):
