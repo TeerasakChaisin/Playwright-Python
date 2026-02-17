@@ -8,10 +8,11 @@ new_user:
   nationality: Thai
   email: 
   agree_marketing: true
-  times: 3
+  times: 2
 
 import_types:
   Batch Tier Update:
+    type: tier
     default:
       tier_code: JPJPY-RED
     rules:
@@ -21,8 +22,9 @@ import_types:
         amount: 1
 
   Batch Import Wallet Transactions:
-    - member_id:
-    - point: 500
-    - description: test
-    - expired_at:
-    - tags: wallet:JPJPY,non-tier
+    type: wallet
+    columns:
+      point: 500
+      description: test
+      expired_at:
+      tags: wallet:JPJPY,non-tier

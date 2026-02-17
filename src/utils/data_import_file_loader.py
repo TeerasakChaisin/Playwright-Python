@@ -20,14 +20,11 @@ def build_import_files(yaml_name: str):
     for import_type, cfg in config["import_types"].items():
         file_path = IMPORT_DIR / f"{import_type}.xlsx"
 
-        if "rules" in cfg:
+        if cfg["type"] == "tier":
             build_tier_update_excel(member_ids, cfg, file_path)
-        else:
-            columns = {}
-            for row in cfg:
-                for k, v in row.items():
-                    columns[k] = v
-            build_wallet_excel(member_ids, columns, file_path)
+
+        elif cfg["type"] == "wallet":
+            build_wallet_excel(member_ids, cfg["columns"], file_path)
 
         result.append((import_type, str(file_path)))
 
@@ -35,4 +32,10 @@ def build_import_files(yaml_name: str):
 
 def load_import_sequence(yaml_name: str):
     data = load_yaml(yaml_name)
-    return list(data["import_types"].keys())
+
+    result = []
+    for import_type in data["import_types"]:
+        file_path = IMPORT_DIR / f"{import_type}.xlsx"
+        result.append((import_type, str(file_path)))
+
+    return result
